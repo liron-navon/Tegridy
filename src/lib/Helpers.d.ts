@@ -1,0 +1,11 @@
+import { InternalComponentInstance } from '../types';
+export declare const isString: (i: any) => boolean;
+export declare const isNumber: (i: any) => boolean;
+export declare const isArray: (i: any) => boolean;
+export declare const isFunction: (i: any) => boolean;
+export declare const isExist: (i: any) => boolean;
+export declare const isBoolean: (i: any) => boolean;
+export declare const fastHash: (s: any) => number;
+export declare const isStateFullComponent: (c: InternalComponentInstance) => any;
+export declare const isFunctionalComponent: (c: InternalComponentInstance) => any;
+export declare const isComponent: (c: InternalComponentInstance) => any;

@@ -1,0 +1,11 @@
+export declare const isString: (i: any) => boolean;
+export declare const isNumber: (i: any) => boolean;
+export declare const isArray: (i: any) => boolean;
+export declare const isFunction: (i: any) => boolean;
+export declare const isExist: (i: any) => boolean;
+export declare const isBoolean: (i: any) => boolean;
+export declare const fastHash: (s: any) => number;
+export declare const isStateFullComponent: (c: any) => any;
+export declare const isFunctionalComponent: (c: any) => any;
+export declare const isComponent: (c: any) => any;
+export declare function isShallowEqual(objA: any, objB: any): boolean;

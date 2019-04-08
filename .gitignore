@@ -84,3 +84,4 @@ typings/
 .dynamodb/
 
 old_itirations/
+.idea

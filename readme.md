@@ -2,6 +2,10 @@
 
 Tegridy is a simplified javascript framework written as a part of a medium post.
 
+Tegridy is named after tegridy farms from [SouthPark](http://southpark.cc.com/) (I really 🧡 SouthPark).
+![Tegridy farms, southpark](https://vignette.wikia.nocookie.net/southpark/images/5/5f/Tegridy_Farms_Clean.png/revision/latest?cb=20181222070921)
+
+
 To build simply run 
 ```
 npm run build

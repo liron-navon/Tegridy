@@ -1,8 +1,8 @@
 const path = require('path');
 
 const config = {
-    mode: isProduction ? 'production' : 'development',
-    entry: path.resolve('src/index.ts'),
+    mode: 'development',
+    entry: path.resolve('src/index.js'),
     devtool: "source-map",
     output: {
         path: path.resolve('dist'),

@@ -1,6 +1,6 @@
 {
   "name": "tegridy",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A new front end framework, based off react syntax, used for educational reasons",
   "main": "dist/index.js",
   "types": "./src/index.d.ts",

@@ -170,11 +170,11 @@ export class TegridyDom {
             });
 
             // clean up the keys if needed
-            if (noKeysHit && parentInstance[Internal.componentCache].componentKeys) {
+            if (noKeysHit && parentInstance && parentInstance[Internal.componentCache].componentKeys) {
                 parentInstance[Internal.componentCache].componentKeys = {};
             }
 
-            return {dom, element, childInstances};
+            return {dom, element, childInstances, parentDom};
         } else {
             // create and render the component
             const publicInstance = TegridyDom.createPublicInstance(element);
@@ -184,7 +184,7 @@ export class TegridyDom {
             const childInstance = TegridyDom.instantiate(
                 childElement,
                 publicInstance,
-                publicInstance.__instance.dom
+                publicInstance.__instance.dom || parentDom
             );
 
             const newInternalInstance = {
@@ -192,6 +192,7 @@ export class TegridyDom {
                 element,
                 childInstance,
                 publicInstance,
+                parentDom
             };
             publicInstance[Internal.instance] = newInternalInstance;
 
@@ -207,7 +208,7 @@ export class TegridyDom {
 
     // update the instance for our component
     static updateInstance = (internalInstance) => {
-        const parentDom = internalInstance.dom.parentNode;
+        const parentDom = internalInstance.parentDom || internalInstance.dom.parentNode;
         const element = internalInstance.element;
         TegridyDom.reconsile(parentDom, internalInstance, element)
     };
@@ -313,7 +314,6 @@ export class TegridyDom {
 
     // reconcile the children of an instance
     static reconsileChildren = (instance: InternalComponentInstance, element: Types.Element) => {
-        debugger
         const {dom, childInstances} = instance;
         const nextChildElements = element.props.children || [];
 

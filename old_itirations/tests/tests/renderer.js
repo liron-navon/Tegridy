@@ -1,4 +1,4 @@
-import Tegridy from '../src/index';
+import Tegridy from '../../../src';
 
 export const render = (componentToRender) => {
     const el = document.createElement('template');

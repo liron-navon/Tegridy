@@ -1,4 +1,4 @@
-import Tegridy from '../src/index';
+import Tegridy from '../../../src';
 import {render} from './renderer';
 
 test('Simple render', () => {

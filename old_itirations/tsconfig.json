@@ -20,7 +20,7 @@
     // strict mode
     "strict": true,
     // the base url to process
-    "baseUrl": "./src",
+    "baseUrl": "../src",
     // allows to import stuff using the raw-loader which have no default export
     "allowSyntheticDefaultImports": true,
     // it helps babel resolve modules (since we use babel AND typescript)
@@ -43,7 +43,7 @@
     "noImplicitAny": false
   },
   "exclude": [
-    "dist",
+    "../dist",
     "node_modules",
     "scripts"
   ],

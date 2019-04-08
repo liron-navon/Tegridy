@@ -1,5 +1,5 @@
 // will lookup Tegridy components in the an array of children
-import {TegridyDom} from "./index";
+import {TegridyDom} from ".";
 import {fastHash, isArray, isExist, isStateFullComponent} from "../Helpers";
 import {Types, InternalComponentInstance} from "../../types";
 
@@ -78,7 +78,19 @@ export const reconcileComponentDomChange = (parentDom: HTMLElement, instance: In
         }
     }
 
-    parentDom.replaceChild(newInstance.dom, instance.dom);
+
+    // for shadow root elements
+    if (parentDom && (parentDom as any).host) {
+        // replace child manually
+        if (parentDom.firstElementChild) {
+            parentDom.removeChild(parentDom.firstElementChild);
+        }
+        parentDom.appendChild(newInstance.dom);
+        console.log(newInstance.dom.innerText)
+    }else {
+        parentDom.replaceChild(newInstance.dom, instance.dom);
+    }
+
     return newInstance;
 };
 

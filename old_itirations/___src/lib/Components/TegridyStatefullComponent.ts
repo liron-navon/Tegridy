@@ -1,5 +1,5 @@
 import {JSX} from "../types/jsx";
-import {Tegridy} from "../../index";
+import {Tegridy} from "../..";
 
 export class TegridyStatefullComponent<PP = any, SS = any> {
     props: PP;

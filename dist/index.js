@@ -101,7 +101,7 @@ return /******/ (function(modules) { // webpackBootstrap
   !*** ./node_modules/tslib/tslib.es6.js ***!
   \*****************************************/
 /*! exports provided: __extends, __assign, __rest, __decorate, __param, __metadata, __awaiter, __generator, __exportStar, __values, __read, __spread, __await, __asyncGenerator, __asyncDelegator, __asyncValues, __makeTemplateObject, __importStar, __importDefault */
-/*! ModuleConcatenation bailout: Module is referenced from these modules with unsupported syntax: ./src/lib/Components/TegridyStatefullComponent.ts (referenced with cjs require) */
+/*! ModuleConcatenation bailout: Module is referenced from these modules with unsupported syntax: ./src/index.ts (referenced with cjs require), ./src/lib/Components/TegridyPureComponent.ts (referenced with cjs require), ./src/lib/Components/TegridyStatefullComponent.ts (referenced with cjs require), ./src/lib/TegridyDom/index.ts (referenced with cjs require) */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -326,218 +326,79 @@ function __importDefault(mod) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
+var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+var TegridyDom_1 = __webpack_require__(/*! ./lib/TegridyDom */ "./src/lib/TegridyDom/index.ts");
 var TegridyStatefullComponent_1 = __webpack_require__(/*! ./lib/Components/TegridyStatefullComponent */ "./src/lib/Components/TegridyStatefullComponent.ts");
-var Helpers_1 = __webpack_require__(/*! ./lib/Helpers */ "./src/lib/Helpers.ts");
-var Helpers_2 = __webpack_require__(/*! ./lib/Helpers */ "./src/lib/Helpers.ts");
-var Helpers_3 = __webpack_require__(/*! ./lib/Helpers */ "./src/lib/Helpers.ts");
+var TegridyPureComponent_1 = __webpack_require__(/*! ./lib/Components/TegridyPureComponent */ "./src/lib/Components/TegridyPureComponent.ts");
+// create a standard component from the templating engine syntax (JSX|HTM|etc...)
 var createComponent = function (tag, props) {
     var children = [];
     for (var _i = 2; _i < arguments.length; _i++) {
         children[_i - 2] = arguments[_i];
     }
-    if (Helpers_1.isFunction(tag) && !tag.__isStatefull) {
-        tag.__isFunctional = true;
+    if (children.length > 0) {
+        children.__isChildren = true;
     }
     return {
         tag: tag,
-        props: props || {},
-        children: children,
-        isF: Boolean(tag.__isFunctional),
-        isC: Boolean(tag.__isStatefull)
+        props: tslib_1.__assign({}, props, { children: children })
     };
 };
-var applyElementProps = function (dom, props, lastProps) {
-    Object.keys(props).forEach(function (name) {
-        if (name.startsWith('on')) {
-            dom.addEventListener(name.substring(2).toLowerCase(), props[name]);
-        }
-        else {
-            dom.setAttribute(name, props[name]);
-        }
-    });
+// create a new tegridy instance and create it's vDom
+var render = function (component, container) {
+    var tegridy = new TegridyDom_1.TegridyDom();
+    tegridy.virtualDom = TegridyDom_1.TegridyDom.reconsile(container, tegridy.virtualDom, component);
+    tegridy.rootComponent = tegridy.virtualDom && tegridy.virtualDom.publicInstance;
+    return {
+        component: tegridy.rootComponent,
+        vDom: tegridy.virtualDom
+    };
 };
-var Tegridy = /** @class */ (function () {
-    function Tegridy() {
-        this.vDom = null;
-        this.rootElement = null;
-    }
-    Tegridy.updateState = function (instance, newState) {
-        var parentDom = instance.parentDom, dom = instance.dom, rootVDom = instance.rootVDom;
-        instance.state = newState;
-        instance.elementsUsedFromCache = [];
-        Tegridy.reconcileComponent(rootVDom, parentDom, instance, dom);
-        // delete unused keys
-        var keys = Object.keys(instance.cachedElements);
-        if (keys.length !== instance.elementsUsedFromCache.length) {
-            keys.forEach(function (k) {
-                if (!instance.elementsUsedFromCache.includes(k)) {
-                    delete instance.cachedElements[k];
-                }
-            });
-        }
-    };
-    Tegridy.reconcileChildren = function (parentComponent, parentDom, lastInstance, lastDom, lastComponentInstance) {
-        if (!parentComponent.children) {
-            return null;
-        }
-        parentComponent.children.map(function (child, i) {
-            if (Helpers_2.isArray(child)) {
-                if (lastComponentInstance && lastComponentInstance.cachedElements) {
-                    child.map(function (subChild) {
-                        var key = i + parentComponent.tag + subChild.props.key;
-                        var cachedInstance = lastComponentInstance.cachedElements[key];
-                        if (!cachedInstance) {
-                            var _a = Tegridy.reconcile(subChild, parentDom, null, null, lastComponentInstance), dom = _a.dom, vDom = _a.vDom;
-                            lastComponentInstance.cachedElements[key] = {
-                                dom: dom, vDom: vDom, r: lastComponentInstance.renderID
-                            };
-                            lastComponentInstance.elementsUsedFromCache.push(key);
-                        }
-                        else {
-                            // no need to render this
-                            var _b = Tegridy.reconcile(subChild, parentDom, cachedInstance.vDom, cachedInstance.dom, lastComponentInstance), dom = _b.dom, vDom = _b.vDom;
-                            lastComponentInstance.cachedElements[key] = {
-                                dom: dom, vDom: vDom, r: lastComponentInstance.renderID
-                            };
-                            lastComponentInstance.elementsUsedFromCache.push(key);
-                        }
-                    });
-                }
-                else {
-                    child.map(function (child) {
-                        return Tegridy.reconcile(child, parentDom, null, null, lastComponentInstance);
-                    });
-                }
-                //cachedElements
-                // child.map((child) => {
-                //     return Tegridy.reconcile(child, parentDom, lastInstance, lastDom, null);
-                // });
-                return;
-            }
-            else {
-                var childDom = lastDom
-                    ? Helpers_2.isArray(lastDom)
-                        ? lastDom[i]
-                        : lastDom.childNodes[i]
-                    : null;
-                var childInstance = lastInstance
-                    ? Helpers_2.isArray(lastInstance)
-                        ? lastInstance[i]
-                        : lastInstance.children[i]
-                    : null;
-                return Tegridy.reconcile(child, parentDom, childInstance, childDom, lastComponentInstance);
-            }
-        });
-        return { dom: parentDom, vDom: parentComponent };
-    };
-    Tegridy.reconcileComponent = function (component, parentDom, lastInstance, lastDom) {
-        if (component.isF) {
-            var instance = component.tag;
-            instance.parentDom = parentDom;
-            var res = instance(component.props);
-            if (!instance.cachedElements) {
-                instance.cachedElements = {};
-            }
-            var reconciled = Tegridy.reconcile(res, parentDom, instance.vDom, lastDom ? lastDom : null, instance);
-            instance.vDom = reconciled.vDom;
-            instance.dom = reconciled.dom;
-            instance.rootVDom = component;
-            return reconciled;
-        }
-        else {
-            var instance = lastInstance ? lastInstance : new component.tag(component.props);
-            var res = instance.render();
-            instance.parentDom = parentDom;
-            if (!instance.cachedElements) {
-                instance.cachedElements = {};
-            }
-            var reconciled = Tegridy.reconcile(res, parentDom, instance.vDom, lastDom ? lastDom : null, instance);
-            instance.vDom = reconciled.vDom;
-            instance.dom = reconciled.dom;
-            instance.rootVDom = component;
-            return reconciled;
-        }
-    };
-    Tegridy.reconcile = function (component, parentDom, lastInstance, lastDom, lastComponentInstance) {
-        if (Helpers_1.isBoolean(component) || !Helpers_2.isExist(component)) {
-            return null;
-        }
-        if (Helpers_2.isString(component) || Helpers_1.isNumber(component)) {
-            var newNode = document.createTextNode(component.toString());
-            if (lastDom) {
-                parentDom.replaceChild(newNode, lastDom);
-            }
-            else {
-                parentDom.appendChild(newNode);
-            }
-            return { dom: newNode, vDom: component };
-        }
-        if (component.tag && Helpers_1.isFunction(component.tag)) {
-            return Tegridy.reconcileComponent(component, parentDom, lastInstance, lastDom);
-        }
-        if (lastInstance && lastDom) {
-            if (component.tag) {
-                if (lastInstance.tag !== component.tag) {
-                    parentDom.removeChild(lastDom);
-                    return Tegridy.reconcileChildren(component, parentDom, null, null, lastComponentInstance);
-                }
-                debugger;
-                if (!Helpers_3.isShallowEqual(lastInstance.props, component.props)) {
-                    applyElementProps(lastDom, component.props, lastInstance.props);
-                    return { dom: lastDom, vDom: lastInstance.vDom };
-                }
-                if (component.children) {
-                    return Tegridy.reconcileChildren(component, lastDom, component, lastDom, lastComponentInstance);
-                }
-            }
-            else {
-                // compare text nodes
-                if (lastInstance === component) {
-                    return { dom: lastDom, vDom: component };
-                }
-                else {
-                    parentDom.replaceWith(document.createTextNode(component));
-                }
-            }
-        }
-        else {
-            if (component.tag) {
-                var newDomNode = document.createElement(component.tag);
-                parentDom.appendChild(newDomNode);
-                applyElementProps(newDomNode, component.props, null);
-                if (component.children) {
-                    return Tegridy.reconcileChildren(component, newDomNode, null, null, lastComponentInstance);
-                }
-                return { dom: newDomNode, vDom: component };
-            }
-            else {
-                var newDomNode = document.createTextNode(component);
-                if (parentDom.nodeType === Node.TEXT_NODE) {
-                    parentDom.replaceWith(newDomNode);
-                }
-                else {
-                    debugger;
-                    parentDom.appendChild(newDomNode);
-                }
-                return { dom: newDomNode, vDom: component };
-            }
-        }
-        return { dom: parentDom, vDom: component };
-    };
-    return Tegridy;
-}());
-exports.Tegridy = Tegridy;
-var render = function (component, element) {
-    var t = new Tegridy();
-    t.vDom = component;
-    t.rootElement = element;
-    Tegridy.reconcile(component, t.rootElement, null, null, null);
-};
+// the public API for tegridy
 exports.default = {
+    render: render,
     createComponent: createComponent,
     Component: TegridyStatefullComponent_1.TegridyStatefullComponent,
-    render: render
+    PureComponent: TegridyPureComponent_1.TegridyPureComponent
 };
+exports.Component = TegridyStatefullComponent_1.TegridyStatefullComponent;
+exports.PureComponent = TegridyPureComponent_1.TegridyPureComponent;
+
+
+/***/ }),
+
+/***/ "./src/lib/Components/TegridyPureComponent.ts":
+/*!****************************************************!*\
+  !*** ./src/lib/Components/TegridyPureComponent.ts ***!
+  \****************************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+// the base component class
+var comparisonAlgorithms_1 = __webpack_require__(/*! ../comparisonAlgorithms/comparisonAlgorithms */ "./src/lib/comparisonAlgorithms/comparisonAlgorithms.ts");
+var TegridyStatefullComponent_1 = __webpack_require__(/*! ./TegridyStatefullComponent */ "./src/lib/Components/TegridyStatefullComponent.ts");
+var TegridyPureComponent = /** @class */ (function (_super) {
+    tslib_1.__extends(TegridyPureComponent, _super);
+    function TegridyPureComponent() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    // check if the component should update
+    TegridyPureComponent.prototype.shouldComponentUpdate = function (nextProps, nextState) {
+        // handle state change
+        if (nextProps === this.props) {
+            return comparisonAlgorithms_1.didPureStateChange(this.state, nextState);
+        }
+        // handle props change
+        return comparisonAlgorithms_1.didPurePropsChange(this.props, nextProps);
+    };
+    return TegridyPureComponent;
+}(TegridyStatefullComponent_1.TegridyStatefullComponent));
+exports.TegridyPureComponent = TegridyPureComponent;
 
 
 /***/ }),
@@ -554,33 +415,33 @@ exports.default = {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
-var index_1 = __webpack_require__(/*! ../../index */ "./src/index.ts");
+// the base component class
+var enums_1 = __webpack_require__(/*! ../enums */ "./src/lib/enums.ts");
+var comparisonAlgorithms_1 = __webpack_require__(/*! ../comparisonAlgorithms/comparisonAlgorithms */ "./src/lib/comparisonAlgorithms/comparisonAlgorithms.ts");
+var TegridyDom_1 = __webpack_require__(/*! ../TegridyDom */ "./src/lib/TegridyDom/index.ts");
 var TegridyStatefullComponent = /** @class */ (function () {
     function TegridyStatefullComponent(props) {
-        this.cachedElements = {};
-        this.elementsUsedFromCache = [];
         this.props = props;
         // @ts-ignore
         this.state = this.state || {};
         this.mounted = false;
+        // helps us know if the component is our's
+        this[enums_1.Internal.isStateFullComponent] = true;
     }
     // set the new state for the component, triggers an update if needed
     TegridyStatefullComponent.prototype.setState = function (partialState) {
         var newState = tslib_1.__assign({}, this.state, partialState);
-        //
-        // // check if we want to update the changes
-        // if (this.shouldComponentUpdate(this.props, newState)) {
-        //     this.state = newState;
-        //
-        //     this.componentWillUpdate(this.props, newState);
-        //
-        index_1.Tegridy.updateState(this, newState);
-        //
-        //     this.componentDidUpdate(this.props, newState);
-        // } else {
-        //     // update the state without updating the component
-        //     this.state = newState;
-        // }
+        // check if we want to update the changes
+        if (this.shouldComponentUpdate(this.props, newState)) {
+            this.state = newState;
+            this.componentWillUpdate(this.props, newState);
+            TegridyDom_1.TegridyDom.updateInstance(this[enums_1.Internal.instance]);
+            this.componentDidUpdate(this.props, newState);
+        }
+        else {
+            // update the state without updating the component
+            this.state = newState;
+        }
     };
     // called before mounting the component into the dom
     TegridyStatefullComponent.prototype.componentDidMount = function () {
@@ -593,14 +454,14 @@ var TegridyStatefullComponent = /** @class */ (function () {
     };
     // check if the component should update
     TegridyStatefullComponent.prototype.shouldComponentUpdate = function (nextProps, nextState) {
-        // // handle state change
-        // if (nextProps === this.props) {
-        //     return didStateChange(this.state, nextState)
-        // } else {
-        //     // handle props change
-        //     return didPropsChange(this.props, nextProps)
-        // }
-        return true;
+        // handle state change
+        if (nextProps === this.props) {
+            return comparisonAlgorithms_1.didStateChange(this.state, nextState);
+        }
+        else {
+            // handle props change
+            return comparisonAlgorithms_1.didPropsChange(this.props, nextProps);
+        }
     };
     // called before every render, not including the first render.
     TegridyStatefullComponent.prototype.componentWillUpdate = function (nextProps, nextState) {
@@ -608,14 +469,15 @@ var TegridyStatefullComponent = /** @class */ (function () {
     // Called after every render, not including the first render.
     TegridyStatefullComponent.prototype.componentDidUpdate = function (prevProps, prevState) {
     };
-    TegridyStatefullComponent.prototype.render = function () { return null; };
+    TegridyStatefullComponent.prototype.render = function () { };
     TegridyStatefullComponent.prototype.forceUpdate = function () {
-        // TegridyDom.updateInstance(this[Internal.instance]);
+        TegridyDom_1.TegridyDom.updateInstance(this[enums_1.Internal.instance]);
     };
-    TegridyStatefullComponent.__isStatefull = true;
     return TegridyStatefullComponent;
 }());
 exports.TegridyStatefullComponent = TegridyStatefullComponent;
+// helps us know if the component is our's
+TegridyStatefullComponent[enums_1.Internal.isStateFullComponent] = true;
 
 
 /***/ }),
@@ -630,8 +492,9 @@ exports.TegridyStatefullComponent = TegridyStatefullComponent;
 
 "use strict";
 
-// check if value is astring
 Object.defineProperty(exports, "__esModule", { value: true });
+// check if value is astring
+var enums_1 = __webpack_require__(/*! ./enums */ "./src/lib/enums.ts");
 exports.isString = function (i) { return typeof i === 'string'; };
 // check if value is a number
 exports.isNumber = function (i) { return typeof i === 'number'; };
@@ -658,9 +521,456 @@ exports.fastHash = function (s) {
     }
     return hash;
 };
-exports.isStateFullComponent = function (c) { return c && c.publicInstance && c.publicInstance.__isStatefull; };
-exports.isFunctionalComponent = function (c) { return c && c.publicInstance && c.publicInstance.__isFunctional; };
+exports.isStateFullComponent = function (c) { return c && c.publicInstance && c.publicInstance[enums_1.Internal.isStateFullComponent]; };
+exports.isFunctionalComponent = function (c) { return c && c.publicInstance && c.publicInstance[enums_1.Internal.isFunctionalComponent]; };
 exports.isComponent = exports.isStateFullComponent || exports.isFunctionalComponent;
+
+
+/***/ }),
+
+/***/ "./src/lib/TegridyDom/Reconciler.ts":
+/*!******************************************!*\
+  !*** ./src/lib/TegridyDom/Reconciler.ts ***!
+  \******************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+// will lookup Tegridy components in the an array of children
+var index_1 = __webpack_require__(/*! ./index */ "./src/lib/TegridyDom/index.ts");
+var Helpers_1 = __webpack_require__(/*! ../Helpers */ "./src/lib/Helpers.ts");
+// recursively looking for the children who are also components
+// to call the componentWillUnmount hook
+var findComponentsInChildren = function (childInstances) {
+    var total = [];
+    for (var i = 0, len = childInstances.length; i < len; i++) {
+        var child = childInstances[i];
+        // filter null children
+        if (!Helpers_1.isExist(child)) {
+            return [];
+        }
+        // for array children we need to look for each child and check it
+        if (Helpers_1.isArray(child)) {
+            for (var j = 0, len2 = child.length; j < len2; j++) {
+                var subChild = child[j];
+                if (subChild.publicInstance && Helpers_1.isStateFullComponent(subChild)) {
+                    total.push(subChild);
+                }
+                if (subChild.childInstances) {
+                    var childrenFound = findComponentsInChildren(subChild.childInstances);
+                    total = total.concat(childrenFound);
+                }
+            }
+        }
+        else {
+            if (child.publicInstance && Helpers_1.isStateFullComponent(child)) {
+                total.push(child);
+            }
+            if (child.childInstances) {
+                var childrenFound = findComponentsInChildren(child.childInstances);
+                total = total.concat(childrenFound);
+            }
+        }
+    }
+    return total;
+};
+// handle instance when it's not created (the first call to render)
+exports.reconcileNoInstance = function (parentDom, element) {
+    if (element === null) {
+        return null;
+    }
+    var newInstance = index_1.TegridyDom.instantiate(element, null, parentDom);
+    parentDom.appendChild(newInstance.dom);
+    return newInstance;
+};
+// Element is non existent (when returning null from render)
+exports.reconcileNoElement = function (parentDom, instance) {
+    instance && instance.dom && parentDom.removeChild(instance.dom);
+    return null;
+};
+// reconcile dom changes to an existing component
+exports.reconcileComponentDomChange = function (parentDom, instance, element) {
+    var newInstance = index_1.TegridyDom.instantiate(element, instance, parentDom);
+    var oldInstanceChildComponents = findComponentsInChildren(instance.childInstances);
+    var newInstanceChildComponents = findComponentsInChildren(newInstance.childInstance.childInstances);
+    var _loop_1 = function (i) {
+        var component = oldInstanceChildComponents[i];
+        var exists = !!newInstanceChildComponents.find(function (c) {
+            return c.publicInstance === component.publicInstance;
+        });
+        if (!exists) {
+            // before unmount hook
+            component.publicInstance.componentWillUnmount();
+            component.publicInstance.mounted = false;
+        }
+    };
+    for (var i = 0; i < oldInstanceChildComponents.length; i++) {
+        _loop_1(i);
+    }
+    // for shadow root elements
+    if (parentDom && parentDom.host) {
+        // replace child manually
+        if (parentDom.firstElementChild) {
+            parentDom.removeChild(parentDom.firstElementChild);
+        }
+        parentDom.appendChild(newInstance.dom);
+        console.log(newInstance.dom.innerText);
+    }
+    else {
+        parentDom.replaceChild(newInstance.dom, instance.dom);
+    }
+    return newInstance;
+};
+// reconcile a regular HTML element
+exports.reconcileNativeElement = function (parentDom, instance, element) {
+    index_1.TegridyDom.updateDomProperties(instance.dom, instance.element.props, element.props);
+    instance.childInstances = index_1.TegridyDom.reconsileChildren(instance, element);
+    instance.element = element;
+    return instance;
+};
+// reconcile changes to an existing component
+exports.reconcileComponentChanges = function (parentDom, instance, element) {
+    // if we need to reconsile a component
+    var childInstance = index_1.TegridyDom.reconsile(parentDom, instance.childInstance, instance.publicInstance);
+    return {
+        publicInstance: instance.publicInstance,
+        dom: childInstance.dom,
+        childInstances: childInstance,
+        element: element
+    };
+};
+
+
+/***/ }),
+
+/***/ "./src/lib/TegridyDom/index.ts":
+/*!*************************************!*\
+  !*** ./src/lib/TegridyDom/index.ts ***!
+  \*************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var tslib_1 = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+var Helpers_1 = __webpack_require__(/*! ../Helpers */ "./src/lib/Helpers.ts");
+var comparisonAlgorithms_1 = __webpack_require__(/*! ../comparisonAlgorithms/comparisonAlgorithms */ "./src/lib/comparisonAlgorithms/comparisonAlgorithms.ts");
+var enums_1 = __webpack_require__(/*! ../enums */ "./src/lib/enums.ts");
+var Reconciler = tslib_1.__importStar(__webpack_require__(/*! ./Reconciler */ "./src/lib/TegridyDom/Reconciler.ts"));
+var TegridyDom = /** @class */ (function () {
+    function TegridyDom() {
+        // where we keep the entire virtual dom
+        this.virtualDom = null;
+        // the root component
+        this.rootComponent = null;
+    }
+    // instantiate the element
+    TegridyDom.instantiate = function (element, parentInstance, parentDom) {
+        // element cannot be an array, must exist and cannot be a boolean
+        // these values occur when doing conditional rendering
+        if (!Helpers_1.isExist(element) || Helpers_1.isBoolean(element)) {
+            return null;
+        }
+        // it is a text Node
+        if (Helpers_1.isString(element) || Helpers_1.isNumber(element)) {
+            var textDom = document.createTextNode(element);
+            return {
+                dom: textDom,
+                childInstances: [],
+                element: element
+            };
+        }
+        var tag = element.tag, props = element.props;
+        var noKeysHit = true;
+        // if dom element
+        if (Helpers_1.isString(tag)) {
+            if (parentDom) {
+            }
+            // let dom;
+            // const stateHash = fastHash(JSON.stringify(props)).toString();
+            // if (parentDom) {
+            //     const childrenWithSameTags = [...parentDom.getElementsByTagName(tag as string)];
+            //
+            //     const cachedChildDom = childrenWithSameTags.find((d) => {
+            //         console.log(d.getAttribute('_tegridy'), stateHash);
+            //         return d.getAttribute('_tegridy') === stateHash;
+            //     });
+            //
+            //     // if (cachedChildDom) {
+            //     //     // dom = cachedChildDom;
+            //     // } else {
+            //         dom = document.createElement(tag as string);
+            //         TegridyDom.updateDomProperties(dom, props, null, stateHash);
+            //     // }
+            // } else {
+            //     dom = document.createElement(tag as string);
+            //     TegridyDom.updateDomProperties(dom, props, null, stateHash);
+            // }
+            var dom_1 = document.createElement(tag);
+            TegridyDom.updateDomProperties(dom_1, props, null);
+            var children_1 = props.children || [];
+            // create and add children to the dom
+            var childInstances = children_1.map(function (child, index) {
+                var childInstance;
+                var isChildList = Helpers_1.isArray(child);
+                var formerChild = !isChildList && parentInstance && parentInstance.__instance && parentInstance.__instance.childInstance && parentInstance.__instance.childInstance.childInstances[index];
+                if (formerChild && formerChild.publicInstance && formerChild.element.tag === child.tag && Helpers_1.isFunction(formerChild.publicInstance.render)) {
+                    var publicInstance = formerChild.publicInstance;
+                    if (Helpers_1.isFunction(publicInstance.componentWillReceiveProps)) {
+                        publicInstance.componentWillReceiveProps(publicInstance.props, child.props);
+                    }
+                    var isStatefull = Helpers_1.isStateFullComponent(formerChild);
+                    var shouldUpdate = isStatefull
+                        // statefull/pure component
+                        ? publicInstance.shouldComponentUpdate(child.props, publicInstance.props)
+                        // functional component
+                        : comparisonAlgorithms_1.didPropsChange(publicInstance.props, child.props);
+                    if (shouldUpdate) {
+                        // lifecycle hook componentWillUpdate
+                        isStatefull && publicInstance.componentWillUpdate(child.props, publicInstance.state);
+                        var prevProps = publicInstance.props;
+                        publicInstance.props = child.props;
+                        var myChildInstance = TegridyDom.instantiate(publicInstance.render(), formerChild.publicInstance, publicInstance.__instance && publicInstance.__instance.dom);
+                        var instance = {
+                            childInstance: myChildInstance,
+                            dom: myChildInstance.dom,
+                            element: child,
+                            publicInstance: publicInstance
+                        };
+                        myChildInstance && dom_1.appendChild(myChildInstance.dom);
+                        // lifecycle hook componentDidUpdate
+                        isStatefull && publicInstance.componentDidUpdate(prevProps, publicInstance.state);
+                        childInstance = instance;
+                    }
+                    else {
+                        formerChild && dom_1.appendChild(formerChild.dom);
+                        childInstance = formerChild;
+                    }
+                }
+                else if (isChildList) {
+                    var hitKeys_1 = {};
+                    if (!parentInstance[enums_1.Internal.componentCache].componentKeys) {
+                        parentInstance[enums_1.Internal.componentCache].componentKeys = {};
+                    }
+                    var componentKeys_1 = parentInstance[enums_1.Internal.componentCache].componentKeys;
+                    childInstance = child.reduce(function (acc, listChild) {
+                        if (listChild.props && Helpers_1.isExist(listChild.props.key)) {
+                            var childKey = index + "-listChild.props.key";
+                            // check if this list element is already cached
+                            var cachedElement = componentKeys_1[childKey];
+                            if (cachedElement && comparisonAlgorithms_1.isShallowEqual(listChild.props, cachedElement.element.props)) {
+                                if (noKeysHit) {
+                                    noKeysHit = false;
+                                }
+                                dom_1.appendChild(cachedElement.instance.dom);
+                                acc.push(cachedElement);
+                                return acc;
+                            }
+                            var listChildInstance_1 = TegridyDom.instantiate(listChild, parentInstance, parentDom);
+                            // cache this component
+                            componentKeys_1[childKey] = {
+                                element: listChild,
+                                instance: listChildInstance_1
+                            };
+                            listChildInstance_1 && dom_1.appendChild(listChildInstance_1.dom);
+                            listChildInstance_1 && acc.push(listChildInstance_1);
+                            return acc;
+                        }
+                        else {
+                            if (!children_1.__isChildren) {
+                                console.warn('array element must contain key for optimization reasons');
+                            }
+                        }
+                        var listChildInstance = TegridyDom.instantiate(listChild, parentInstance, parentDom);
+                        listChildInstance && dom_1.appendChild(listChildInstance.dom);
+                        listChildInstance && acc.push(listChildInstance);
+                        return acc;
+                    }, []);
+                    if (!noKeysHit) {
+                        Object.keys(componentKeys_1)
+                            .forEach(function (key) {
+                            // key for this list, but the key wasn't hit
+                            if (key.startsWith("" + index) && !hitKeys_1[key]) {
+                                delete componentKeys_1[key];
+                            }
+                        });
+                    }
+                }
+                else {
+                    childInstance = TegridyDom.instantiate(child, parentInstance, parentDom);
+                    childInstance && dom_1.appendChild(childInstance.dom);
+                }
+                return childInstance;
+            });
+            // clean up the keys if needed
+            if (noKeysHit && parentInstance && parentInstance[enums_1.Internal.componentCache].componentKeys) {
+                parentInstance[enums_1.Internal.componentCache].componentKeys = {};
+            }
+            return { dom: dom_1, element: element, childInstances: childInstances, parentDom: parentDom };
+        }
+        else {
+            // create and render the component
+            var publicInstance = TegridyDom.createPublicInstance(element);
+            var childElement = publicInstance.render();
+            // instantiate the children
+            var childInstance = TegridyDom.instantiate(childElement, publicInstance, publicInstance.__instance.dom || parentDom);
+            var newInternalInstance = {
+                dom: childInstance.dom,
+                element: element,
+                childInstance: childInstance,
+                publicInstance: publicInstance,
+                parentDom: parentDom
+            };
+            publicInstance[enums_1.Internal.instance] = newInternalInstance;
+            // call the componentDidMount lifecycle hook
+            if (!publicInstance.mounted && Helpers_1.isStateFullComponent(newInternalInstance)) {
+                publicInstance.componentDidMount();
+                publicInstance.mounted = true;
+            }
+            return newInternalInstance;
+        }
+    };
+    // update the instance for our component
+    TegridyDom.updateInstance = function (internalInstance) {
+        var parentDom = internalInstance.parentDom || internalInstance.dom.parentNode;
+        var element = internalInstance.element;
+        TegridyDom.reconsile(parentDom, internalInstance, element);
+    };
+    // creates a public instance of the TegridyStatefullComponent
+    TegridyDom.createPublicInstance = function (element) {
+        var _a;
+        // component already exist, don't recreate it
+        if (element[enums_1.Internal.instance] && element[enums_1.Internal.instance].publicInstance) {
+            return element[enums_1.Internal.instance].publicInstance;
+        }
+        var tag = element.tag, props = element.props;
+        var publicInstance;
+        // when this is an anonymous function, it will have no tag
+        // component is a class
+        if (tag && tag[enums_1.Internal.isStateFullComponent]) {
+            publicInstance = new tag(props);
+        }
+        // component is a function
+        else {
+            publicInstance = (_a = {
+                    props: props
+                },
+                _a[enums_1.Internal.isFunctionalComponent] = true,
+                _a.render = function () { return tag
+                    ? tag(publicInstance.props)
+                    : Helpers_1.isFunction(element) && element(); } // call anonymous function
+            ,
+                _a);
+        }
+        // give the ref of the created component
+        if (props && props.ref && Helpers_1.isFunction(props.ref)) {
+            props.ref(publicInstance);
+        }
+        // create an empty internal instance
+        publicInstance[enums_1.Internal.instance] = {};
+        publicInstance[enums_1.Internal.componentCache] = {};
+        return publicInstance;
+    };
+    // remove old dom properties, and add new ones
+    TegridyDom.updateDomProperties = function (dom, nextProps, lastProps) {
+        // give the ref of the html element
+        if (nextProps.ref && Helpers_1.isFunction(nextProps.ref)) {
+            nextProps.ref(dom);
+        }
+        // remove the old props
+        if (lastProps) {
+            var lastPropsNames = Object.keys(lastProps);
+            for (var i = 0, len = lastPropsNames.length; i < len; i++) {
+                var name_1 = lastPropsNames[i];
+                var value = lastProps[name_1];
+                if (name_1 === 'children') {
+                    return;
+                }
+                if (Helpers_1.isFunction(value)) {
+                    dom[name_1.toLowerCase()] = null;
+                }
+                else {
+                    dom[name_1] = null;
+                }
+            }
+        }
+        // apply the new props
+        if (nextProps) {
+            var nextPropsNames = Object.keys(nextProps);
+            for (var i = 0, len = nextPropsNames.length; i < len; i++) {
+                var name_2 = nextPropsNames[i];
+                var value = nextProps[name_2];
+                if (name_2 === 'children') {
+                    return;
+                }
+                if (Helpers_1.isFunction(value)) {
+                    dom[name_2.toLowerCase()] = value;
+                }
+                else {
+                    dom[name_2] = value;
+                }
+            }
+        }
+    };
+    // makes sure that all the elements are fitted properly, deletes, replace and create if needed.
+    TegridyDom.reconsile = function (parentDom, instance, element) {
+        if (instance === null) {
+            return Reconciler.reconcileNoInstance(parentDom, element);
+        }
+        else if (element === null) {
+            return Reconciler.reconcileNoElement(parentDom, instance);
+        }
+        else if (instance.element.tag !== element.tag) {
+            return Reconciler.reconcileComponentDomChange(parentDom, instance, element);
+        }
+        else if (Helpers_1.isString(element.tag)) {
+            return Reconciler.reconcileNativeElement(parentDom, instance, element);
+        }
+        else {
+            return Reconciler.reconcileComponentChanges(parentDom, instance, element);
+        }
+    };
+    // reconcile the children of an instance
+    TegridyDom.reconsileChildren = function (instance, element) {
+        var dom = instance.dom, childInstances = instance.childInstances;
+        var nextChildElements = element.props.children || [];
+        var newChildInstances = [];
+        var count = Math.max(childInstances.length, nextChildElements.length);
+        for (var i = 0; i < count; i++) {
+            var childInstance = childInstances[i];
+            var childElement = nextChildElements[i];
+            var newChildInstance = TegridyDom.reconsile(dom, childInstance, childElement);
+            if (newChildInstance) {
+                newChildInstances.push(newChildInstance);
+            }
+        }
+        return newChildInstances;
+    };
+    return TegridyDom;
+}());
+exports.TegridyDom = TegridyDom;
+
+
+/***/ }),
+
+/***/ "./src/lib/comparisonAlgorithms/comparisonAlgorithms.ts":
+/*!**************************************************************!*\
+  !*** ./src/lib/comparisonAlgorithms/comparisonAlgorithms.ts ***!
+  \**************************************************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Helpers_1 = __webpack_require__(/*! ../Helpers */ "./src/lib/Helpers.ts");
+// manually check shallow equality
 function isShallowEqual(objA, objB) {
     if (objA === objB) {
         return true;
@@ -684,6 +994,48 @@ function isShallowEqual(objA, objB) {
 }
 exports.isShallowEqual = isShallowEqual;
 ;
+// check if props changed
+exports.didPropsChange = function (prevProps, newProps) { return !isShallowEqual(prevProps, newProps); };
+// check if state changed
+exports.didStateChange = function (prevState, newState) { return !isShallowEqual(prevState, newState); };
+// Make a comparison for the virtual dom
+exports.didVDomChange = function (oldDom, newDom) {
+    var html1 = oldDom.innerHTML;
+    var html2 = newDom.innerHTML;
+    // if the length has changed, change the dom
+    if (html1.length !== html2.length) {
+        return true;
+    }
+    // If the hash is different, change the dom
+    // this might not work properly, should be improved 🤷‍♀️
+    return Helpers_1.fastHash(html1) !== Helpers_1.fastHash(html2);
+};
+// check if state changed for pure component
+exports.didPureStateChange = function (prevState, newState) { return !isShallowEqual(prevState, newState); };
+// check if props changed for pure component
+exports.didPurePropsChange = function (prevProps, newProps) { return !isShallowEqual(prevProps, newProps); };
+
+
+/***/ }),
+
+/***/ "./src/lib/enums.ts":
+/*!**************************!*\
+  !*** ./src/lib/enums.ts ***!
+  \**************************/
+/*! no static exports found */
+/*! ModuleConcatenation bailout: Module is not an ECMAScript module */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var Internal;
+(function (Internal) {
+    Internal["instance"] = "__instance";
+    Internal["isStateFullComponent"] = "__isStateFullComponent";
+    Internal["componentCache"] = "__componentCache";
+    Internal["isFunctionalComponent"] = "__isFunctionalComponent";
+})(Internal = exports.Internal || (exports.Internal = {}));
 
 
 /***/ })

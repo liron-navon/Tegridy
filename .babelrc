@@ -1,9 +1,5 @@
 {
     "presets": [
-        "@babel/preset-env",
-        "@babel/preset-typescript",
-        "tegridy-jsx",
-        "tegridy-htm"
-    ],
-    "plugins": ["transform-class-properties"]
+        "@babel/preset-env"
+    ]
 }

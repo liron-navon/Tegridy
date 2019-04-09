@@ -1,12 +1,14 @@
 import {render} from "./tegridy-dom";
-import {createComponent} from "./tegridy-core";
+import {createComponent, useState} from "./tegridy-core";
 
 export default {
     createComponent,
-    render
+    render,
+    useState
 }
 
 export {
     createComponent,
-    render
+    render,
+    useState
 }

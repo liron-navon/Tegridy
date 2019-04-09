@@ -5,3 +5,5 @@ export const createComponent = (tag, props, ...children) => {
         children
     }
 };
+
+export {useState} from './hooks';

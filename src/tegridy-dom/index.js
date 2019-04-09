@@ -1,8 +1,15 @@
 import {reconcile} from "./reconciler";
 
 export const render = (element, rootHTMLElement) => {
-    reconcile(
+    let rootInstance = {
+        stack: []
+    };
+    rootInstance.state = reconcile(
         element,
-        null,
-        rootHTMLElement);
+        rootInstance,
+        rootHTMLElement,
+        0
+    );
+
+    console.log(rootInstance)
 };

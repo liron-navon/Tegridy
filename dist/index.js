@@ -749,10 +749,10 @@ __webpack_require__.r(__webpack_exports__);
 
 var render = function render(element, rootHTMLElement) {
   var rootInstance = {
-    callStack: [],
-    state: {}
+    stack: []
   };
-  rootInstance.state = Object(_reconciler__WEBPACK_IMPORTED_MODULE_0__["reconcile"])(element, rootInstance, rootHTMLElement);
+  rootInstance.state = Object(_reconciler__WEBPACK_IMPORTED_MODULE_0__["reconcile"])(element, rootInstance, rootHTMLElement, 0);
+  console.log(rootInstance);
 };
 
 /***/ }),
@@ -784,61 +784,175 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
 
 
 
- // the algorithm to instantiate, create, update and remove elements and components.
-
-var reconcile = function reconcile(element, instance, parentDom) {
-  // a functional component
-  if (lodash_isFunction__WEBPACK_IMPORTED_MODULE_0___default()(element.tag)) {
-    // assign simpler names for readability
-    var render = element.tag;
-
-    var props = _objectSpread({}, element.props, {
-      children: element.children
-    });
-
-    _tegridy_core_hooks__WEBPACK_IMPORTED_MODULE_4__["beforeCall"](function (p) {
-      return reconcile(render(p), instance, parentDom);
-    }, props, []);
-    var jsx = render(props);
-    var hooksToCache = _tegridy_core_hooks__WEBPACK_IMPORTED_MODULE_4__["getHooks"](); // keep reconciling the result of the component
-
-    var result = reconcile(jsx, instance, parentDom);
-    instance.callStack.push({
-      element: element,
-      instance: instance,
-      parentDom: parentDom,
-      result: result
-    });
-    return result;
-  } // a text node
 
 
-  if (lodash_isString__WEBPACK_IMPORTED_MODULE_1___default()(element) || lodash_isNumber__WEBPACK_IMPORTED_MODULE_2___default()(element) || lodash_isBoolean__WEBPACK_IMPORTED_MODULE_3___default()(element)) {
-    var _node = document.createTextNode(element);
+var reconcileHTMLElement = function reconcileHTMLElement(element, instance, parentDom, cursor, currentInstance, hasInstance) {
+  if (hasInstance) {
+    if (currentInstance.element.tag === element.tag) {
+      // if no children
+      if (!element.children.length) {
+        return {
+          vDom: currentInstance.vDom,
+          dom: currentInstance.dom
+        };
+      } // skip this element, but render it's children
 
-    parentDom.appendChild(_node);
-    return {
-      dom: _node,
-      vDom: element
-    };
-  } // an HTML element
+
+      var _result = reconcileChildren(element, currentInstance, currentInstance.dom);
+
+      Object.assign(currentInstance, _objectSpread({
+        element: element
+      }, _result));
+      return _result;
+    } else {
+      var _node = document.createElement(element.tag);
+
+      parentDom.replaceChild(_node, currentInstance.dom);
+
+      var _result2 = element.children.length ? reconcileChildren(element, currentInstance, _node) : {
+        dom: _node,
+        vDom: element
+      };
+
+      Object.assign(currentInstance, _objectSpread({
+        element: element
+      }, _result2));
+      return _result2;
+    }
+  } // create a new element
 
 
   var node = document.createElement(element.tag);
   parentDom.appendChild(node);
-  return element.children.length ? reconcileChildren(element, instance, node) : {
+  var result = element.children.length ? reconcileChildren(element, currentInstance, node) : {
     dom: node,
     vDom: element
   };
-}; // go over the children and keep reconciling them
+  Object.assign(currentInstance, _objectSpread({
+    element: element
+  }, result));
+  return result;
+};
 
-var reconcileChildren = function reconcileChildren(element, instance, parentDom) {
-  var childInstances = element.children.map(function (child) {
-    return reconcile(child, instance, parentDom);
+var reconcileFunction = function reconcileFunction(element, instance, parentDom, cursor, currentInstance, hasInstance) {
+  // assign simpler names for readability
+  var render = element.tag;
+
+  var props = _objectSpread({}, element.props, {
+    children: element.children
   });
 
-  if (instance) {
-    instance.childInstances = childInstances;
+  _tegridy_core_hooks__WEBPACK_IMPORTED_MODULE_4__["beforeCall"](function (p) {
+    return reconcile(render(p), currentInstance, parentDom, 0);
+  }, props, currentInstance.hooks || []);
+  var jsx = render(props);
+  currentInstance.hooks = _tegridy_core_hooks__WEBPACK_IMPORTED_MODULE_4__["getHooks"](); // keep reconciling the result of the component
+
+  var result = reconcile(jsx, currentInstance, parentDom, 0);
+  Object.assign(currentInstance, _objectSpread({
+    element: element
+  }, result));
+  return result;
+};
+
+var reconcileTextNode = function reconcileTextNode(element, instance, parentDom, cursor, currentInstance, hasInstance) {
+  if (hasInstance) {
+    // has instance and didn't change, don't touch it
+    if (element === currentInstance.element) {
+      return {
+        vDom: currentInstance.vDom,
+        dom: currentInstance.dom
+      };
+    } // replace the text content of the node
+
+
+    currentInstance.dom.textContent = element;
+    var _result3 = {
+      dom: currentInstance.dom,
+      vDom: element
+    };
+    Object.assign(currentInstance, _objectSpread({
+      element: element
+    }, _result3));
+    return _result3;
+  } // doesn't have an instance, create one
+
+
+  var node = document.createTextNode(element);
+  parentDom.appendChild(node);
+  var result = {
+    dom: node,
+    vDom: element
+  };
+  Object.assign(currentInstance, _objectSpread({
+    element: element
+  }, result));
+  return result;
+};
+
+var reconcileOptional = function reconcileOptional(element, instance, parentDom, cursor, currentInstance, hasInstance) {
+  if (element === false) {
+    instance.stack[cursor] = undefined;
+
+    if (instance.childInstances && instance.childInstances.length >= cursor) {
+      instance.childInstances[cursor] = undefined;
+      parentDom.removeChild(currentInstance.dom);
+    }
+  }
+
+  return {
+    vDom: null,
+    dom: null
+  };
+}; // the algorithm to instantiate, create, update and remove elements and components.
+
+
+var reconcile = function reconcile(element, instance, parentDom, cursor) {
+  var currentInstance = instance.stack[cursor];
+
+  if (!currentInstance) {
+    currentInstance = {
+      stack: []
+    }; // if this was an optional element, we need to rehydrate it and not append it
+
+    if (instance.stack.length >= cursor) {
+      instance.stack[cursor] = currentInstance;
+    } else {
+      instance.stack.push(currentInstance);
+    }
+  }
+
+  var hasInstance = !!currentInstance.dom; // a functional component
+
+  if (lodash_isFunction__WEBPACK_IMPORTED_MODULE_0___default()(element.tag)) {
+    return reconcileFunction(element, instance, parentDom, cursor, currentInstance, hasInstance);
+  } // an optional render
+
+
+  if (lodash_isBoolean__WEBPACK_IMPORTED_MODULE_3___default()(element)) {
+    return reconcileOptional(element, instance, parentDom, cursor, currentInstance, hasInstance);
+  } // a text node
+
+
+  if (lodash_isString__WEBPACK_IMPORTED_MODULE_1___default()(element) || lodash_isNumber__WEBPACK_IMPORTED_MODULE_2___default()(element)) {
+    return reconcileTextNode(element, instance, parentDom, cursor, currentInstance, hasInstance);
+  } // an HTML element
+
+
+  return reconcileHTMLElement(element, instance, parentDom, cursor, currentInstance, hasInstance);
+}; // go over the children and keep reconciling them
+
+var reconcileChildren = function reconcileChildren(element, parentInstance, parentDom) {
+  if (!parentInstance.stack) {
+    parentInstance.stack = [];
+  }
+
+  var childInstances = element.children.map(function (child, index) {
+    return reconcile(child, parentInstance, parentDom, index);
+  });
+
+  if (parentInstance) {
+    parentInstance.childInstances = childInstances;
   }
 
   return {
